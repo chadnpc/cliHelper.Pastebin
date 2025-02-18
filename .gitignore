@@ -405,7 +405,7 @@ BuildOutput/
 LocalPSRepo/
 Tests/results.xml
 Tests/Resources/
-Tests/cliHelper.Pastebin.Module.Tests.ps1
-Tests/cliHelper.Pastebin.Features.Tests.ps1
-Tests/cliHelper.Pastebin.Intergration.Tests.ps1
+Tests/cliHelper.pastebin.Module.Tests.ps1
+Tests/cliHelper.pastebin.Features.Tests.ps1
+Tests/cliHelper.pastebin.Intergration.Tests.ps1
 Tests/Resources/Test-GitHubScript.ps1

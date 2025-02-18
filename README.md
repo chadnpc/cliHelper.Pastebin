@@ -1,5 +1,5 @@
 ﻿
-# [cliHelper.Pastebin](https://www.powershellgallery.com/packages/cliHelper.Pastebin)
+# [cliHelper.pastebin](https://www.powershellgallery.com/packages/cliHelper.pastebin)
 
 A module for interacting with the Pastebin API from PowerShell.
 
@@ -12,13 +12,13 @@ It handles all the essential functionality described in the API documentation,
 ## Usage
 
 ```PowerShell
-Install-Module cliHelper.Pastebin
+Install-Module cliHelper.pastebin
 ```
 
 then
 
 ```PowerShell
-Import-Module cliHelper.Pastebin
+Import-Module cliHelper.pastebin
 # do stuff here.
 ```
 
