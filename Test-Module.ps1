@@ -52,7 +52,7 @@ begin {
   }
   $BuildOutDir = Resolve-Path $([IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'pastebin', $version)) -ErrorAction Ignore | Get-Item -ErrorAction Ignore
   if (!$BuildOutDir.Exists) { throw [System.IO.DirectoryNotFoundException]::new($BuildOutDir) }
-  $manifestFile = [IO.FileInfo]::New([IO.Path]::Combine($BuildOutDir.FullName, "pastebin.psd1"))
+  $manifestFile = [IO.FileInfo]::New([IO.Path]::Combine($BuildOutDir.FullName, "cliHelper.Pastebin.psd1"))
   Write-Host "[+] Checking Prerequisites ..." -ForegroundColor Green
   if (!$BuildOutDir.Exists) {
     $msg = 'Directory "{0}" Not Found. First make sure you successfuly built the module.' -f ([IO.Path]::GetRelativePath($PSScriptRoot, $BuildOutDir.FullName))
@@ -65,11 +65,11 @@ begin {
   if (!$skipBuildOutputTest.IsPresent -and !$manifestFile.Exists) {
     throw [System.IO.FileNotFoundException]::New("Could Not Find Module manifest File $([IO.Path]::GetRelativePath($PSScriptRoot, $manifestFile.FullName))")
   }
-  if (!(Test-Path -Path $([IO.Path]::Combine($PSScriptRoot, "pastebin.psd1")) -PathType Leaf -ErrorAction Ignore)) { throw [System.IO.FileNotFoundException]::New("Module manifest file Was not Found in '$($BuildOutDir.FullName)'.") }
+  if (!(Test-Path -Path $([IO.Path]::Combine($PSScriptRoot, "cliHelper.Pastebin.psd1")) -PathType Leaf -ErrorAction Ignore)) { throw [System.IO.FileNotFoundException]::New("Module manifest file Was not Found in '$($BuildOutDir.FullName)'.") }
   $script:fnNames = [System.Collections.Generic.List[string]]::New(); $testFiles = [System.Collections.Generic.List[IO.FileInfo]]::New()
-  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'pastebin.Integration.Tests.ps1')))
-  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'pastebin.Features.Tests.ps1')))
-  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'pastebin.Module.Tests.ps1')))
+  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'cliHelper.Pastebin.Integration.Tests.ps1')))
+  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'cliHelper.Pastebin.Features.Tests.ps1')))
+  [void]$testFiles.Add([IO.FileInfo]::New([IO.Path]::Combine("$PSScriptRoot", 'Tests', 'cliHelper.Pastebin.Module.Tests.ps1')))
 }
 
 process {
