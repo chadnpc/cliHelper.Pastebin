@@ -1,4 +1,4 @@
-﻿function  Get-RawPublicPaste {
+﻿function Get-RawPublicPaste {
   # (for public/unlisted pastes)
   [CmdletBinding()]
   param (

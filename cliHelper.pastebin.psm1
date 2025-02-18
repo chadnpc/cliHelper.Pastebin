@@ -31,7 +31,7 @@ class PasteOptions {
   Implementation of Pastebin developers API
 .EXAMPLE
   #Set Api Key
-  [Pastebin]::SetApiDevKey("YOUR_API_KEY") # Replace with your API key
+  [Pastebin]::SetApiDevKey("PASTEBIN_API_KEY") # Replace with your API key
 
   # --- Create a new paste (public)
   $newPasteUrl = [Pastebin]::NewPaste("Hello, Pastebin!", @{ Name = "MyTestPaste.txt"; Expire = "1H" })
@@ -102,19 +102,19 @@ class PasteOptions {
 #>
 Class Pastebin {
   #  Properties (consider making these instance properties if you want to support multiple accounts)
-  hidden static [PsRecord]$Config = @{
-    ApiDevKey  = ""  # Replace with actual API key OR get it from a secure store.  HIGHLY recommended to NOT hardcode.
+  hidden static $Config = @{
+    ApiDevKey  = (Read-Env .env).Where({ $_.Name -eq "PASTEBIN_API_KEY" }).Value   # Replace with actual API key OR get it from a secure store.  HIGHLY recommended to NOT hardcode.
     ApiUserKey = $null # Store user key after successful login.
-  }
+  } -as 'PsRecord'
 
-  #  Constructor (Optional - Could be used to initialize the ApiDevKey)
-  Pastebin([string]$DeveloperKey) {
-    if (-not [string]::IsNullOrEmpty($DeveloperKey)) {
-      [Pastebin]::Config.ApiDevKey = $DeveloperKey
-    } else {
-      Write-Warning "API key Should Be Set"
-    }
-  }
+  Pastebin() {}
+  # Pastebin([string]$DeveloperKey) {
+  #   if (-not [string]::IsNullOrEmpty($DeveloperKey)) {
+  #     [Pastebin]::Config.ApiDevKey = $DeveloperKey
+  #   } else {
+  #     Write-Warning "API key Should Be Set"
+  #   }
+  # }
 
   # Makes API requests __ Handles common POST logic.
   hidden static [string] MakeApiRequest([string]$Url, [hashtable]$Parameters) {

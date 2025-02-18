@@ -96,19 +96,19 @@
   PrivateData           = @{
     PSData = @{
       # Tags applied to this module. These help with module discovery in online galleries.
-      Tags         = 'PowerShell', 'alain'
+      Tags                       = 'PowerShell', 'alain'
 
       # A URL to the license for this module.
-      LicenseUri   = 'https://alain.mit-license.org/'
+      LicenseUri                 = 'https://alain.mit-license.org/'
 
       # A URL to the main website for this project.
-      ProjectUri   = 'https://github.com/alain/cliHelper.pastebin'
+      ProjectUri                 = 'https://github.com/alain/cliHelper.pastebin'
 
       # A URL to an icon representing this module.
-      IconUri      = 'https://github.com/user-attachments/assets/1220c30e-a309-43c3-9a80-1948dae30e09'
+      IconUri                    = 'https://github.com/user-attachments/assets/1220c30e-a309-43c3-9a80-1948dae30e09'
 
       # ReleaseNotes of this module
-      ReleaseNotes = '# Release Notes
+      ReleaseNotes               = '# Release Notes
 
 - Version_0.1.0
 - Functions ...
@@ -122,7 +122,10 @@
       # RequireLicenseAcceptance = $false
 
       # External dependent modules of this module
-      # ExternalModuleDependencies = @()
+      ExternalModuleDependencies = @(
+        'cliHelper.core'
+        'cliHelper.env'
+      )
     } # End of PSData hashtable
   } # End of PrivateData hashtable
   # HelpInfo URI of this module
