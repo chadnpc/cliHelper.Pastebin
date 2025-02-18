@@ -27,7 +27,7 @@ param (
       [OutputType([System.Management.Automation.CompletionResult])]
       param([string]$CommandName, [string]$ParameterName, [string]$WordToComplete, [System.Management.Automation.Language.CommandAst]$CommandAst, [System.Collections.IDictionary]$FakeBoundParameters)
       $CompletionResults = [System.Collections.Generic.List[System.Management.Automation.CompletionResult]]::new()
-      $b_Path = [IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'pastebin')
+      $b_Path = [IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'cliHelper.pastebin')
       if ((Test-Path -Path $b_Path -PathType Container -ErrorAction Ignore)) {
         [IO.DirectoryInfo]::New($b_Path).GetDirectories().Name | Where-Object { $_ -like "*$wordToComplete*" -and $_ -as 'version' -is 'version' } | ForEach-Object { [void]$CompletionResults.Add([System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)) }
       }
@@ -40,7 +40,7 @@ param (
 )
 begin {
   $TestResults = $null
-  $BuildOutput = [IO.DirectoryInfo]::New([IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'pastebin'))
+  $BuildOutput = [IO.DirectoryInfo]::New([IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'cliHelper.pastebin'))
   if (!$BuildOutput.Exists) {
     Write-Warning "NO_Build_OutPut | Please make sure to Build the module successfully before running tests..";
     throw [System.IO.DirectoryNotFoundException]::new("Cannot find path '$($BuildOutput.FullName)' because it does not exist.")
@@ -49,7 +49,7 @@ begin {
   if ([string]::IsNullOrWhiteSpace($version)) {
     $version = $BuildOutput.GetDirectories().Name -as 'version[]' | Select-Object -Last 1
   }
-  $BuildOutDir = Resolve-Path $([IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'pastebin', $version)) -ErrorAction Ignore | Get-Item -ErrorAction Ignore
+  $BuildOutDir = Resolve-Path $([IO.Path]::Combine($PSScriptRoot, 'BuildOutput', 'cliHelper.pastebin', $version)) -ErrorAction Ignore | Get-Item -ErrorAction Ignore
   if (!$BuildOutDir.Exists) { throw [System.IO.DirectoryNotFoundException]::new($BuildOutDir) }
   $manifestFile = [IO.FileInfo]::New([IO.Path]::Combine($BuildOutDir.FullName, "cliHelper.pastebin.psd1"))
   Write-Host "[+] Checking Prerequisites ..." -ForegroundColor Green

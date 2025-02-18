@@ -1,6 +1,6 @@
 ﻿
 # verify the interactions and behavior of the module's components when they are integrated together.
-Describe "Integration tests: pastebin" {
+Describe "Integration tests: cliHelper.pastebin" {
   Context "Functionality Integration" {
     It "Performs expected action" {
       # Here you can write tests to simulate the usage of your functions and validate their behavior.

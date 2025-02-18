@@ -1,6 +1,6 @@
 ﻿
 @{
-  ModuleName    = 'pastebin'
+  ModuleName    = 'cliHelper.pastebin'
   ModuleVersion = [version]'0.1.0'
   ReleaseNotes  = '# Release Notes
 
