@@ -1,10 +1,9 @@
-﻿
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # .SYNOPSIS
-#   pastebin testScript v0.1.0
+#   cliHelper.Pastebin testScript v0.1.0
 # .EXAMPLE
 #   ./Test-Module.ps1 -version 0.1.0
-#   Will test the module in ./BuildOutput/pastebin/0.1.0/
+#   Will test the module in ./BuildOutput/cliHelper.Pastebin/0.1.0/
 # .EXAMPLE
 #   ./Test-Module.ps1
 #   Will test the latest  module version in ./BuildOutput/pastebin/
