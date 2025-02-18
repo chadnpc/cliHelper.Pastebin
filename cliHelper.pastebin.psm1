@@ -1,11 +1,34 @@
 ﻿#!/usr/bin/env pwsh
+using namespace System.Collections.Generic
+
+#Requires -Modules cliHelper.core, cliHelper.env
+
 #region    Classes
+enum PasteVisibility {
+  Public
+  Unlisted
+  Private
+}
+
+class PasteOptions {
+  [string]$Name
+  [string]$Format
+  [string]$Expire
+  [string]$UserKey
+  [string]$FolderKey
+  [PasteVisibility]$Visibility
+  PasteOptions() {}
+  PasteOptions([hashtable]$hashtable) {
+    [ValidateNotNullOrEmpty()][hashtable]$hashtable = $hashtable
+    $hashtable.Keys.ForEach({ $this.$_ = $hashtable[$_] })
+  }
+}
 
 <#
 .SYNOPSIS
-  A short one-line action-based description, e.g. 'Tests if a function is valid'
+  Main class
 .DESCRIPTION
-  A longer description of the function, its purpose, common use cases, etc.
+  Implementation of Pastebin developers API
 .EXAMPLE
   #Set Api Key
   [Pastebin]::SetApiDevKey("YOUR_API_KEY") # Replace with your API key
@@ -16,10 +39,10 @@
 
   # --- Create an unlisted paste:
 
-  $pasteOptions = @{
+  $pasteOptions = [PasteOptions]@{
     Name    = "My Unlisted Paste"
     Format  = "powershell"
-    Private = 1     # 0 = Public, 1 = Unlisted, 2 = Private
+    Visibility = 1     # 0 = Public, 1 = Unlisted, 2 = Private
     Expire  = "1D"  # 1 Day
   }
 
@@ -79,13 +102,15 @@
 #>
 Class Pastebin {
   #  Properties (consider making these instance properties if you want to support multiple accounts)
-  hidden static [string]$ApiDevKey = ""  # Replace with actual API key OR get it from a secure store.  HIGHLY recommended to NOT hardcode.
-  hidden static [string]$ApiUserKey = $null # Store user key after successful login.
+  hidden static [PsRecord]$Config = @{
+    ApiDevKey  = ""  # Replace with actual API key OR get it from a secure store.  HIGHLY recommended to NOT hardcode.
+    ApiUserKey = $null # Store user key after successful login.
+  }
 
   #  Constructor (Optional - Could be used to initialize the ApiDevKey)
   Pastebin([string]$DeveloperKey) {
     if (-not [string]::IsNullOrEmpty($DeveloperKey)) {
-      [Pastebin]::ApiDevKey = $DeveloperKey
+      [Pastebin]::Config.ApiDevKey = $DeveloperKey
     } else {
       Write-Warning "API key Should Be Set"
     }
@@ -120,12 +145,12 @@ Class Pastebin {
   }
 
   static [string] NewPaste([string]$Code, [hashtable]$Options = @{}) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
     $parameters = @{
-      api_dev_key    = [Pastebin]::ApiDevKey
+      api_dev_key    = [Pastebin]::Config.ApiDevKey
       api_option     = 'paste'
       api_paste_code = $Code
     }
@@ -133,11 +158,11 @@ Class Pastebin {
     # Add optional parameters if provided
     if ($Options.ContainsKey('Name')) { $parameters.Add('api_paste_name', $Options['Name']) }
     if ($Options.ContainsKey('Format')) { $parameters.Add('api_paste_format', $Options['Format']) }
-    if ($Options.ContainsKey('Private')) { $parameters.Add('api_paste_private', $Options['Private']) }
+    if ($Options.ContainsKey('Visibility')) { $parameters.Add('api_paste_private', $Options['Visibility']) }
     if ($Options.ContainsKey('Expire')) { $parameters.Add('api_paste_expire_date', $Options['Expire']) }
     if ($Options.ContainsKey('FolderKey')) { $parameters.Add('api_folder_key', $Options['FolderKey']) }
-    if ($Options.ContainsKey('UserKey') -or (-not [string]::IsNullOrEmpty([Pastebin]::ApiUserKey))) {
-      $parameters.Add('api_user_key', $(if ($Options.ContainsKey('UserKey')) { $Options['UserKey'] }else { [Pastebin]::ApiUserKey }))
+    if ($Options.ContainsKey('UserKey') -or (-not [string]::IsNullOrEmpty([Pastebin]::Config.ApiUserKey))) {
+      $parameters.Add('api_user_key', $(if ($Options.ContainsKey('UserKey')) { $Options['UserKey'] }else { [Pastebin]::Config.ApiUserKey }))
     }
 
     $result = [Pastebin]::MakeApiRequest("https://pastebin.com/api/api_post.php", $parameters)
@@ -151,20 +176,19 @@ Class Pastebin {
 
   # Login and get user key
   static [string] Login([string]$Username, [securestring]$Password) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
     $parameters = @{
-      api_dev_key       = [Pastebin]::ApiDevKey
+      api_dev_key       = [Pastebin]::Config.ApiDevKey
       api_user_name     = $Username
       api_user_password = $Password | xconvert Tostring
     }
-
     $result = [Pastebin]::MakeApiRequest("https://pastebin.com/api/api_login.php", $parameters)
 
     if ($result -and $result -notmatch "^Bad API request") {
-      [Pastebin]::ApiUserKey = $result  # Store the user key
+      [Pastebin]::Config.ApiUserKey = $result  # Store the user key
       return $result
     } else {
       Write-Error "Login Failed: $result"
@@ -172,31 +196,30 @@ Class Pastebin {
     }
   }
   static [void] SetApiDevKey([string]$DeveloperKey) {
-    [Pastebin]::ApiDevKey = $DeveloperKey
+    [Pastebin]::Config.ApiDevKey = $DeveloperKey
   }
   static [void] SetApiUserKey([string]$UserKey) {
-    [Pastebin]::ApiUserKey = $UserKey
+    [Pastebin]::Config.ApiUserKey = $UserKey
   }
   static [string] GetApiUserKey() {
-    return [Pastebin]::ApiUserKey
+    return [Pastebin]::Config.ApiUserKey
   }
   static [string] GetApiDevKey() {
-    return [Pastebin]::ApiDevKey
+    return [Pastebin]::Config.ApiDevKey
   }
   #  List pastes for a user
   static [string] ListPastes([int]$Limit = 50) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiUserKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiUserKey)) {
       Write-Error "User not logged in.  Use Login() first."
       return $null
     }
-
     $parameters = @{
-      api_dev_key       = [Pastebin]::ApiDevKey
-      api_user_key      = [Pastebin]::ApiUserKey
+      api_dev_key       = [Pastebin]::Config.ApiDevKey
+      api_user_key      = [Pastebin]::Config.ApiUserKey
       api_option        = 'list'
       api_results_limit = $Limit
     }
@@ -204,18 +227,18 @@ Class Pastebin {
     return [Pastebin]::MakeApiRequest("https://pastebin.com/api/api_post.php" , $parameters)
   }
   static [string] DeletePaste([string]$PasteKey) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiUserKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiUserKey)) {
       Write-Error "User not logged in.  Use Login() first."
       return $null
     }
 
     $parameters = @{
-      api_dev_key   = [Pastebin]::ApiDevKey
-      api_user_key  = [Pastebin]::ApiUserKey
+      api_dev_key   = [Pastebin]::Config.ApiDevKey
+      api_user_key  = [Pastebin]::Config.ApiUserKey
       api_paste_key = $PasteKey
       api_option    = 'delete'
     }
@@ -228,18 +251,18 @@ Class Pastebin {
     return $null
   }
   static [string] GetUserDetails() {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiUserKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiUserKey)) {
       Write-Error "User not logged in.  Use Login() first."
       return $null
     }
 
     $parameters = @{
-      api_dev_key  = [Pastebin]::ApiDevKey
-      api_user_key = [Pastebin]::ApiUserKey
+      api_dev_key  = [Pastebin]::Config.ApiDevKey
+      api_user_key = [Pastebin]::Config.ApiUserKey
       api_option   = 'userdetails'
     }
 
@@ -247,17 +270,17 @@ Class Pastebin {
   }
   #  Get raw paste content (requires user login)
   static [string] GetRawPaste([string]$PasteKey) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiUserKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiUserKey)) {
       Write-Error "User not logged in for private paste retrieval.  Use Login() first, or use GetRawPublicPaste()."
       return $null
     }
     $parameters = @{
-      api_dev_key   = [Pastebin]::ApiDevKey
-      api_user_key  = [Pastebin]::ApiUserKey
+      api_dev_key   = [Pastebin]::Config.ApiDevKey
+      api_user_key  = [Pastebin]::Config.ApiUserKey
       api_paste_key = $PasteKey
       api_option    = 'show_paste'
     }
@@ -266,7 +289,7 @@ Class Pastebin {
   }
   # Get raw paste content (public or unlisted)
   static [string] GetRawPublicPaste([string]$PasteKey) {
-    if ([string]::IsNullOrEmpty([Pastebin]::ApiDevKey)) {
+    if ([string]::IsNullOrEmpty([Pastebin]::Config.ApiDevKey)) {
       Write-Error "ApiDevKey is not set.  Use Set-ApiDevKey or the constructor to set it."
       return $null
     }
@@ -285,13 +308,15 @@ Class Pastebin {
   }
   # Logout (Clears the stored API User Key)
   static [void] Logout() {
-    [Pastebin]::ApiUserKey = $null
+    [Pastebin]::Config.ApiUserKey = $null
   }
 }
 
 #endregion Classes
 # Types that will be available to users when they import the module.
-$typestoExport = @()
+$typestoExport = @(
+  [Pastebin], [PasteOptions], [PasteVisibility]
+)
 $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 foreach ($Type in $typestoExport) {
   if ($Type.FullName -in $TypeAcceleratorsClass::Get.Keys) {
